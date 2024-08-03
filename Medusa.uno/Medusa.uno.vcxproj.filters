@@ -86,7 +86,6 @@
     </ClCompile>
     <ClCompile Include="Hacks\NadePredEXP.cpp" />
     <ClCompile Include="Hacks\dll.cpp" />
-    <ClCompile Include="Hacks\handle.cpp" />
     <ClCompile Include="Math.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -262,7 +261,6 @@
     <ClInclude Include="Hacks\bass4.h" />
     <ClInclude Include="Hacks\bass5.h" />
     <ClInclude Include="Hacks\dll.h" />
-    <ClInclude Include="Hacks\handle.h" />
     <ClInclude Include="Hacks\bass6.h" />
     <ClInclude Include="Math.h" />
     <ClInclude Include="SDK\MoveMsg.h" />
