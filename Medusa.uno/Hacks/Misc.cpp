@@ -2960,85 +2960,595 @@ void Misc::showKeybinds() noexcept
     if (!config->misc.keybindList.enabled)
         return;
 
-    if (!anyActiveKeybinds() && !gui->isOpen())
+    if (!anyActiveKeybinds && !gui->isOpen())
         return;
 
     if (config->misc.keybindList.pos != ImVec2{}) {
         ImGui::SetNextWindowPos(config->misc.keybindList.pos);
         config->misc.keybindList.pos = {};
     }
-
-    ImGui::SetNextWindowSize({ 250.f, 0.f }, ImGuiCond_Once);
-    ImGui::SetNextWindowSizeConstraints({ 250.f, 0.f }, { 250.f, FLT_MAX });
-
-    ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
+    auto windowFlags = ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize;
     if (!gui->isOpen())
         windowFlags |= ImGuiWindowFlags_NoInputs;
-
-    if (config->misc.keybindList.noTitleBar)
-        windowFlags |= ImGuiWindowFlags_NoTitleBar;
-
-
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0));
-    ImGui::PushStyleColor(ImGuiCol_TitleBg, ImVec4(0, 0, 0, 0));
-    ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImVec4(0, 0, 0, 0));
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowTitleAlign, { 0.5f, 0.5f });
-
-    ImGui::Begin(" keybinds ", nullptr, windowFlags);
-
-    ImGui::PopStyleVar(2);
-    ImGui::PopStyleColor(3);
-
-
-    ImVec2 windowPos = ImGui::GetWindowPos();
-    ImVec2 cursorPos = ImGui::GetCursorPos();
-    ImDrawList* drawList = ImGui::GetWindowDrawList();
-    drawList->AddLine(
-        ImVec2(windowPos.x, windowPos.y + cursorPos.y),
-        ImVec2(windowPos.x + ImGui::GetWindowWidth(), windowPos.y + cursorPos.y),
-        IM_COL32(193, 154, 164, 255), 1.0f); // Pink line with thickness 1.0
-
-
-    ImGui::SetCursorPosY(cursorPos.y + 2.0f);
-
-    config->ragebotKey.showKeybind();
-    config->minDamageOverrideKey.showKeybind();
-
-    config->tickbase.doubletap.showKeybind();
-    config->tickbase.hideshots.showKeybind();
-
-    config->legitbotKey.showKeybind();
-    config->triggerbotKey.showKeybind();
-
-    if (config->visuals.zoom)
-        config->visuals.zoomKey.showKeybind();
-    if (config->visuals.freeCam)
-        config->visuals.freeCamKey.showKeybind();
-
-    if (config->misc.blockBot)
-        config->misc.blockBotKey.showKeybind();
-    if (config->misc.edgeJump)
-        config->misc.edgeJumpKey.showKeybind();
-    if (config->misc.miniJump)
-        config->misc.miniJumpKey.showKeybind();
-    if (config->misc.jumpBug)
-        config->misc.jumpBugKey.showKeybind();
-    if (config->misc.edgeBug)
-        config->misc.edgeBugKey.showKeybind();
-    if (config->misc.autoPixelSurf)
-        config->misc.autoPixelSurfKey.showKeybind();
-    if (config->misc.jumpBug)
-        config->misc.jumpBugKey.showKeybind();
-    if (config->misc.slowwalk)
-        config->misc.slowwalkKey.showKeybind();
-    if (config->misc.fakeduck)
-        config->misc.fakeduckKey.showKeybind();
-    if (config->misc.autoPeek.enabled)
-        config->misc.autoPeekKey.showKeybind();
-    if (config->misc.prepareRevolver)
-        config->misc.prepareRevolverKey.showKeybind();
-
+    ImGui::SetNextWindowSize({ 150.f, 0.f }, ImGuiCond_Once);
+    ImGui::PushFont(gui->getFIconsFont());
+    auto size = ImGui::CalcTextSize(c_xor("Keybinds"));
+    ImGui::SetNextWindowSizeConstraints({ 150.f, 0.f }, { 150.f, size.y * 2 - 2 });
+    ImGui::GetBackgroundDrawList();
+    ImGui::Begin(c_xor("Keybinds list"), nullptr, windowFlags);
+    {
+        //ImGui::PushFont(gui->getFIconsFont());
+        auto draw_list = ImGui::GetBackgroundDrawList();
+        auto p = ImGui::GetWindowPos();
+        // set keybinds color
+        auto bg_clr = ImColor(0.f, 0.f, 0.f, config->menu.transparency / 100);
+        auto line_clr = Helpers::calculateColor(config->menu.accentColor);
+        auto text_clr = ImColor(255, 255, 255, 255);
+        auto glow = Helpers::calculateColor(config->menu.accentColor, 0.0f);
+        auto glow1 = Helpers::calculateColor(config->menu.accentColor, config->menu.accentColor.color[3] * 0.5f);
+        auto glow2 = Helpers::calculateColor(config->menu.accentColor);
+        auto offset = 2;
+        draw_list->AddRectFilled(ImVec2(p.x, p.y), ImVec2(p.x + 150, p.y + size.y * 2 - 2), bg_clr, config->menu.windowStyle == 0 ? 5.f : 0.0f);
+        // draw line
+        if (config->menu.windowStyle == 0)
+            draw_list->AddRect(ImVec2(p.x - 1, p.y - 1), ImVec2(p.x + 151, p.y + size.y * 2 - 1), line_clr, 5.f, 0, 1.5f);
+        else if (config->menu.windowStyle == 1)
+            draw_list->AddLine({ p.x, p.y - 1 }, { p.x + 150, p.y - 1 }, line_clr, 2.f);
+        else if (config->menu.windowStyle == 2)
+            draw_list->AddLine({ p.x, p.y + size.y * 2 - 3 }, { p.x + 150, p.y + size.y * 2 - 3 }, line_clr, 2.f);
+        else if (config->menu.windowStyle == 3)
+            draw_list->AddLine({ p.x, p.y - 1 }, { p.x + 150, p.y - 1 }, line_clr, 2.f);
+        else if (config->menu.windowStyle == 4)
+            draw_list->AddLine({ p.x, p.y - 1 }, { p.x + 150, p.y - 1 }, line_clr, 2.f);
+        // draw text
+        draw_list->AddText(
+            ImVec2(p.x + 75 - size.x / 2, p.y + size.y / 2 - 1),
+            text_clr,
+            c_xor("Keybinds")
+        );
+        if (config->menu.windowStyle == 3)
+            draw_list->AddRectFilledMultiColor({ p.x, p.y }, ImVec2(p.x + 150, p.y + size.y),
+                glow1,
+                glow1,
+                glow,
+                glow);
+        else if (config->menu.windowStyle == 4)
+        {
+            draw_list->AddRectFilledMultiColor(ImVec2(p.x, p.y), ImVec2(p.x + 2, p.y + size.y * 2), glow2, glow2, glow, glow);
+            draw_list->AddRectFilledMultiColor(ImVec2(p.x + 148, p.y), ImVec2(p.x + 150, p.y + size.y * 2), glow2, glow2, glow, glow);
+        }
+        auto textO = ImGui::CalcTextSize(c_xor("[toggle]"));
+        auto textH = ImGui::CalcTextSize(c_xor("[hold]"));
+        auto textA = ImGui::CalcTextSize(c_xor("[on]"));
+        //legitbot
+        if (config->lgb.enabled && config->legitbotKey.isActive())
+        {
+            if (!config->legitbotKey.CSB())
+            {
+                draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Legitbot"));
+                if (config->legitbotKey.isDown())
+                    draw_list->AddText(ImVec2(p.x - textH.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[hold]"));
+                else if (config->legitbotKey.isToggled())
+                    draw_list->AddText(ImVec2(p.x - textO.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[toggle]"));
+                offset = offset + 1;
+            }
+            if (config->lgb.enableTriggerbot && config->triggerbotKey.isActive())
+            {
+                if (config->triggerbotKey.CSB())
+                {
+                    draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Triggerbot"));
+                    draw_list->AddText(ImVec2(p.x - textA.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[on]"));
+                    offset = offset + 1;
+                }
+                else
+                {
+                    draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Triggerbot"));
+                    if (config->triggerbotKey.isDown())
+                        draw_list->AddText(ImVec2(p.x - textH.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[hold]"));
+                    else if (config->triggerbotKey.isToggled())
+                        draw_list->AddText(ImVec2(p.x - textO.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[toggle]"));
+                    offset = offset + 1;
+                }
+            }
+        }
+        //ragebot
+        if (config->ragebotKey.isActive() && config->ragebot.enabled)
+        {
+            if (!config->ragebotKey.CSB())
+            {
+                draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Ragebot"));
+                if (config->ragebotKey.isDown())
+                    draw_list->AddText(ImVec2(p.x - textH.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[hold]"));
+                else if (config->ragebotKey.isToggled())
+                    draw_list->AddText(ImVec2(p.x - textO.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[toggle]"));
+                offset = offset + 1;
+            }
+            if (config->hitchanceOverride.CSB())
+            {
+                draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("HC override"));
+                draw_list->AddText(ImVec2(p.x - textA.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[on]"));
+                offset = offset + 1;
+            }
+            else if (config->hitchanceOverride.isActive2())
+            {
+                draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("HC override"));
+                if (config->hitchanceOverride.isDown())
+                    draw_list->AddText(ImVec2(p.x - textH.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[hold]"));
+                else if (config->hitchanceOverride.isToggled())
+                    draw_list->AddText(ImVec2(p.x - textO.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[toggle]"));
+                offset = offset + 1;
+            }
+        }
+        //dt
+        if (config->tickbase.doubletap.isActive())
+        {
+            if (config->tickbase.doubletap.CSB())
+            {
+                draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Double tap"));
+                draw_list->AddText(ImVec2(p.x - textA.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[on]"));
+                offset = offset + 1;
+            }
+            else
+            {
+                draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Double tap"));
+                if (config->tickbase.doubletap.isDown())
+                    draw_list->AddText(ImVec2(p.x - textH.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[hold]"));
+                else if (config->tickbase.doubletap.isToggled())
+                    draw_list->AddText(ImVec2(p.x - textO.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[toggle]"));
+                offset = offset + 1;
+            }
+        }
+        //hs
+        if (config->tickbase.hideshots.isActive())
+        {
+            if (config->tickbase.hideshots.CSB())
+            {
+                draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Hide shots"));
+                draw_list->AddText(ImVec2(p.x - textA.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[on]"));
+                offset = offset + 1;
+            }
+            else
+            {
+                draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Hide shots"));
+                if (config->tickbase.hideshots.isDown())
+                    draw_list->AddText(ImVec2(p.x - textH.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[hold]"));
+                else if (config->tickbase.hideshots.isToggled())
+                    draw_list->AddText(ImVec2(p.x - textO.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[toggle]"));
+                offset = offset + 1;
+            }
+        }
+        //dmg
+        if (config->minDamageOverrideKey.isActive())
+        {
+            if (config->minDamageOverrideKey.CSB())
+            {
+                draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Override DMG"));
+                draw_list->AddText(ImVec2(p.x - textA.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[on]"));
+                offset = offset + 1;
+            }
+            else
+            {
+                draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Override DMG"));
+                if (config->minDamageOverrideKey.isDown())
+                    draw_list->AddText(ImVec2(p.x - textH.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[hold]"));
+                else if (config->minDamageOverrideKey.isToggled())
+                    draw_list->AddText(ImVec2(p.x - textO.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[toggle]"));
+                offset = offset + 1;
+            }
+        }
+        //baim
+        if (config->forceBaim.isActive())
+        {
+            if (config->forceBaim.CSB())
+            {
+                draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Force baim"));
+                draw_list->AddText(ImVec2(p.x - textA.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[on]"));
+                offset = offset + 1;
+            }
+            else
+            {
+                draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Force baim"));
+                if (config->forceBaim.isDown())
+                    draw_list->AddText(ImVec2(p.x - textH.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[hold]"));
+                else if (config->forceBaim.isToggled())
+                    draw_list->AddText(ImVec2(p.x - textO.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[toggle]"));
+                offset = offset + 1;
+            }
+        }
+        //fakeflick
+        if (config->fakeFlickOnKey.isActive() && config->rageAntiAim[static_cast<int>(goofy)].fakeFlick)
+        {
+            if (config->fakeFlickOnKey.CSB())
+            {
+                draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Fake flick"));
+                draw_list->AddText(ImVec2(p.x - textA.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[on]"));
+                offset = offset + 1;
+            }
+            else
+            {
+                draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Fake flick"));
+                if (config->fakeFlickOnKey.isDown())
+                    draw_list->AddText(ImVec2(p.x - textH.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[hold]"));
+                else if (config->fakeFlickOnKey.isToggled())
+                    draw_list->AddText(ImVec2(p.x - textO.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[toggle]"));
+                offset = offset + 1;
+            }
+            if (config->flipFlick.isActive())
+            {
+                if (config->flipFlick.CSB())
+                {
+                    draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Fake flick flip"));
+                    draw_list->AddText(ImVec2(p.x - textA.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[on]"));
+                    offset = offset + 1;
+                }
+                else if (!config->flipFlick.CSB())
+                {
+                    draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Fake flick flip"));
+                    if (config->flipFlick.isDown())
+                        draw_list->AddText(ImVec2(p.x - textH.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[hold]"));
+                    else if (config->flipFlick.isToggled())
+                        draw_list->AddText(ImVec2(p.x - textO.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[toggle]"));
+                    offset = offset + 1;
+                }
+            }
+        }
+        //fs
+        if (config->freestandKey.isActive() && config->rageAntiAim[static_cast<int>(goofy)].freestand)
+        {
+            if (config->freestandKey.CSB())
+            {
+                draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Freestand"));
+                draw_list->AddText(ImVec2(p.x - textA.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[on]"));
+                offset = offset + 1;
+            }
+            else
+            {
+                draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Freestand"));
+                if (config->freestandKey.isDown())
+                    draw_list->AddText(ImVec2(p.x - textH.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[hold]"));
+                else if (config->freestandKey.isToggled())
+                    draw_list->AddText(ImVec2(p.x - textO.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[toggle]"));
+                offset = offset + 1;
+            }
+        }
+        //manual
+        if (config->condAA.global)
+        {
+            if (config->manualBackward.isActive())
+            {
+                if (config->manualBackward.CSB())
+                {
+                    draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Backward"));
+                    draw_list->AddText(ImVec2(p.x - textA.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[on]"));
+                    offset = offset + 1;
+                }
+                else
+                {
+                    draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Backward"));
+                    if (config->manualBackward.isDown())
+                        draw_list->AddText(ImVec2(p.x - textH.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[hold]"));
+                    else if (config->manualBackward.isToggled())
+                        draw_list->AddText(ImVec2(p.x - textO.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[toggle]"));
+                    offset = offset + 1;
+                }
+            }
+            if (config->manualForward.isActive())
+            {
+                if (config->manualForward.CSB())
+                {
+                    draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Forward"));
+                    draw_list->AddText(ImVec2(p.x - textA.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[on]"));
+                    offset = offset + 1;
+                }
+                else
+                {
+                    draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Forward"));
+                    if (config->manualForward.isDown())
+                        draw_list->AddText(ImVec2(p.x - textH.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[hold]"));
+                    else if (config->manualForward.isToggled())
+                        draw_list->AddText(ImVec2(p.x - textO.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[toggle]"));
+                    offset = offset + 1;
+                }
+            }
+            if (config->manualLeft.isActive())
+            {
+                if (config->manualLeft.CSB())
+                {
+                    draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Left"));
+                    draw_list->AddText(ImVec2(p.x - textA.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[on]"));
+                    offset = offset + 1;
+                }
+                else
+                {
+                    draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Left"));
+                    if (config->manualLeft.isDown())
+                        draw_list->AddText(ImVec2(p.x - textH.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[hold]"));
+                    else if (config->manualLeft.isToggled())
+                        draw_list->AddText(ImVec2(p.x - textO.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[toggle]"));
+                    offset = offset + 1;
+                }
+            }
+            if (config->manualRight.isActive())
+            {
+                if (config->manualRight.CSB())
+                {
+                    draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Right"));
+                    draw_list->AddText(ImVec2(p.x - textA.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[on]"));
+                    offset = offset + 1;
+                }
+                else
+                {
+                    draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Right"));
+                    if (config->manualRight.isDown())
+                        draw_list->AddText(ImVec2(p.x - textH.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[hold]"));
+                    else if (config->manualRight.isToggled())
+                        draw_list->AddText(ImVec2(p.x - textO.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[toggle]"));
+                    offset = offset + 1;
+                }
+            }
+        }
+        //invert
+        if (config->invert.isActive() && config->rageAntiAim[static_cast<int>(goofy)].desync)
+        {
+            if (config->invert.CSB())
+            {
+                draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Desync invert"));
+                draw_list->AddText(ImVec2(p.x - textA.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[on]"));
+                offset = offset + 1;
+            }
+            else
+            {
+                draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Desync invert"));
+                if (config->invert.isDown())
+                    draw_list->AddText(ImVec2(p.x - textH.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[hold]"));
+                else if (config->invert.isToggled())
+                    draw_list->AddText(ImVec2(p.x - textO.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[toggle]"));
+                offset = offset + 1;
+            }
+        }
+        //fake duck
+        if (config->misc.fakeduckKey.isActive() && config->misc.fakeduck)
+        {
+            if (config->misc.fakeduckKey.CSB())
+            {
+                draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Fake duck"));
+                draw_list->AddText(ImVec2(p.x - textA.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[on]"));
+                offset = offset + 1;
+            }
+            else if (!config->misc.fakeduckKey.CSB())
+            {
+                draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Fake duck"));
+                if (config->misc.fakeduckKey.isDown())
+                    draw_list->AddText(ImVec2(p.x - textH.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[hold]"));
+                else if (config->misc.fakeduckKey.isToggled())
+                    draw_list->AddText(ImVec2(p.x - textO.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[toggle]"));
+                offset = offset + 1;
+            }
+        }
+        //auto peek
+        if (config->misc.autoPeek.enabled && config->misc.autoPeekKey.isActive())
+        {
+            if (config->misc.autoPeekKey.CSB())
+            {
+                draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Auto peek"));
+                draw_list->AddText(ImVec2(p.x - textA.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[on]"));
+                offset = offset + 1;
+            }
+            else
+            {
+                draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Auto peek"));
+                if (config->misc.autoPeekKey.isDown())
+                    draw_list->AddText(ImVec2(p.x - textH.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[hold]"));
+                else if (config->misc.autoPeekKey.isToggled())
+                    draw_list->AddText(ImVec2(p.x - textO.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[toggle]"));
+                offset = offset + 1;
+            }
+        }
+        //edge bug
+        if (config->misc.edgeBug && config->misc.edgeBugKey.isActive())
+        {
+            if (config->misc.edgeBugKey.CSB())
+            {
+                draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Edge bug"));
+                draw_list->AddText(ImVec2(p.x - textA.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[on]"));
+                offset = offset + 1;
+            }
+            else
+            {
+                draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Edge bug"));
+                if (config->misc.edgeBugKey.isDown())
+                    draw_list->AddText(ImVec2(p.x - textH.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[hold]"));
+                else if (config->misc.edgeBugKey.isToggled())
+                    draw_list->AddText(ImVec2(p.x - textO.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[toggle]"));
+                offset = offset + 1;
+            }
+        }
+        //jump bug
+        if (config->misc.jumpBug && config->misc.jumpBugKey.isActive())
+        {
+            if (config->misc.jumpBugKey.CSB())
+            {
+                draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Jump bug"));
+                draw_list->AddText(ImVec2(p.x - textA.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[on]"));
+                offset = offset + 1;
+            }
+            else
+            {
+                draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Jump bug"));
+                if (config->misc.jumpBugKey.isDown())
+                    draw_list->AddText(ImVec2(p.x - textH.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[hold]"));
+                else if (config->misc.jumpBugKey.isToggled())
+                    draw_list->AddText(ImVec2(p.x - textO.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[toggle]"));
+                offset = offset + 1;
+            }
+        }
+        //zoom
+        if (config->visuals.zoom && config->visuals.zoomKey.isActive())
+        {
+            if (config->visuals.zoomKey.CSB())
+            {
+                draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Zoom"));
+                draw_list->AddText(ImVec2(p.x - textA.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[on]"));
+                offset = offset + 1;
+            }
+            else
+            {
+                draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Zoom"));
+                if (config->visuals.zoomKey.isDown())
+                    draw_list->AddText(ImVec2(p.x - textH.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[hold]"));
+                else if (config->visuals.zoomKey.isToggled())
+                    draw_list->AddText(ImVec2(p.x - textO.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[toggle]"));
+                offset = offset + 1;
+            }
+        }
+        //freecam
+        if (config->visuals.freeCam && config->visuals.freeCamKey.isActive())
+        {
+            if (config->visuals.freeCamKey.CSB())
+            {
+                draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Freecam"));
+                draw_list->AddText(ImVec2(p.x - textA.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[on]"));
+                offset = offset + 1;
+            }
+            else
+            {
+                draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Freecam"));
+                if (config->visuals.freeCamKey.isDown())
+                    draw_list->AddText(ImVec2(p.x - textH.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[hold]"));
+                else if (config->visuals.freeCamKey.isToggled())
+                    draw_list->AddText(ImVec2(p.x - textO.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[toggle]"));
+                offset = offset + 1;
+            }
+        }
+        //auto pixel surf
+        if (config->misc.autoPixelSurf && config->misc.autoPixelSurfKey.isActive())
+        {
+            if (config->misc.autoPixelSurfKey.CSB())
+            {
+                draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Auto pixel surf"));
+                draw_list->AddText(ImVec2(p.x - textA.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[on]"));
+                offset = offset + 1;
+            }
+            else
+            {
+                draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Auto pixel surf"));
+                if (config->misc.autoPixelSurfKey.isDown())
+                    draw_list->AddText(ImVec2(p.x - textH.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[hold]"));
+                else if (config->misc.autoPixelSurfKey.isToggled())
+                    draw_list->AddText(ImVec2(p.x - textO.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[toggle]"));
+                offset = offset + 1;
+            }
+        }
+        //block bot
+        if (config->misc.blockBot && config->misc.blockBotKey.isActive())
+        {
+            if (config->misc.blockBotKey.CSB())
+            {
+                draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Block bot"));
+                draw_list->AddText(ImVec2(p.x - textA.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[on]"));
+                offset = offset + 1;
+            }
+            else
+            {
+                draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Block bot"));
+                if (config->misc.blockBotKey.isDown())
+                    draw_list->AddText(ImVec2(p.x - textH.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[hold]"));
+                else if (config->misc.blockBotKey.isToggled())
+                    draw_list->AddText(ImVec2(p.x - textO.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[toggle]"));
+                offset = offset + 1;
+            }
+        }
+        //edge jump
+        if (config->misc.edgeJump && config->misc.edgeJumpKey.isActive())
+        {
+            if (config->misc.edgeJumpKey.CSB())
+            {
+                draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Edge jump"));
+                draw_list->AddText(ImVec2(p.x - textA.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[on]"));
+                offset = offset + 1;
+            }
+            else
+            {
+                draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Edge jump"));
+                if (config->misc.edgeJumpKey.isDown())
+                    draw_list->AddText(ImVec2(p.x - textH.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[hold]"));
+                else if (config->misc.edgeJumpKey.isToggled())
+                    draw_list->AddText(ImVec2(p.x - textO.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[toggle]"));
+                offset = offset + 1;
+            }
+        }
+        //minijump
+        if (config->misc.miniJump && config->misc.miniJumpKey.isActive())
+        {
+            if (config->misc.miniJumpKey.CSB())
+            {
+                draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Mini jump"));
+                draw_list->AddText(ImVec2(p.x - textA.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[on]"));
+                offset = offset + 1;
+            }
+            else
+            {
+                draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Mini jump"));
+                if (config->misc.miniJumpKey.isDown())
+                    draw_list->AddText(ImVec2(p.x - textH.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[hold]"));
+                else if (config->misc.miniJumpKey.isToggled())
+                    draw_list->AddText(ImVec2(p.x - textO.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[toggle]"));
+                offset = offset + 1;
+            }
+        }
+        //slowwalk
+        if (config->misc.slowwalk && config->misc.slowwalkKey.isActive())
+        {
+            if (config->misc.slowwalkKey.CSB())
+            {
+                draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Slow walk"));
+                draw_list->AddText(ImVec2(p.x - textA.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[on]"));
+                offset = offset + 1;
+            }
+            else
+            {
+                draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Slow walk"));
+                if (config->misc.slowwalkKey.isDown())
+                    draw_list->AddText(ImVec2(p.x - textH.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[hold]"));
+                else if (config->misc.slowwalkKey.isToggled())
+                    draw_list->AddText(ImVec2(p.x - textO.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[toggle]"));
+                offset = offset + 1;
+            }
+        }
+        //r8
+        if (config->misc.prepareRevolver && config->misc.prepareRevolverKey.isActive())
+        {
+            if (!config->misc.prepareRevolverKey.CSB())
+            {
+                draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Cocking R8"));
+                if (config->misc.prepareRevolverKey.isDown())
+                    draw_list->AddText(ImVec2(p.x - textH.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[hold]"));
+                else if (config->misc.prepareRevolverKey.isToggled())
+                    draw_list->AddText(ImVec2(p.x - textO.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[toggle]"));
+                offset = offset + 1;
+            }
+        }
+        //door spam
+        if (config->misc.doorSpam && config->misc.doorSpamKey.isActive())
+        {
+            if (config->misc.doorSpamKey.CSB())
+            {
+                draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Door spam"));
+                draw_list->AddText(ImVec2(p.x - textA.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[on]"));
+                offset = offset + 1;
+            }
+            else
+            {
+                draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Door spam"));
+                if (config->misc.doorSpamKey.isDown())
+                    draw_list->AddText(ImVec2(p.x - textH.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[hold]"));
+                else if (config->misc.doorSpamKey.isToggled())
+                    draw_list->AddText(ImVec2(p.x - textO.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[toggle]"));
+                offset = offset + 1;
+            }
+        }
+        ImGui::PopFont();
+    }
     ImGui::End();
 }
 
