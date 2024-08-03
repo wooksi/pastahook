@@ -106,10 +106,11 @@ void Resolver::getEvent(GameEvent* event) noexcept
         const auto& info = resolver_info[index];
         std::string sideHit = info.side == 1 ? "1" : info.side == -1 ? "-1" : "0"; // 1 = right, -1 = left, 0 = middle
         std::string jittering = info.is_jittering ? "true" : "false"; // check if they were jittering
-        std::string safety = info.is_jittering ? "not really" : "kinda";
+        std::string safety = info.is_jittering ? "not really" : "kinda"; /* @note by JannesBonk: ah yes, safety check $$$; @note by Drip: it's either YES or NO */
         std::string playerName = entity->getPlayerName(); // Get player name
         std::string footyaw = std::to_string(info.foot_yaw);
 
+        /* @note by JannesBonk: ah yes, totally using AnimLayers 24/7 */
         Logger::addLog("Fired shot at player | " + playerName + " | AnimLayers | Side: " + sideHit + " | foot_yaw: " + footyaw + "° | Safe: " + safety + " | Jitter: " + jittering + "");
 
         snapshots.pop_front(); // Hit somebody so don't calculate       
@@ -193,7 +194,7 @@ void Resolver::processMissedShots() noexcept
         if (AimbotFunction::hitboxIntersection(matrix, hitbox, set, snapshot.eyePosition, end))
         {
             resolverMissed = true;
-            std::string missed = "missed shot on " + entity->getPlayerName() + " due to ?";
+            std::string missed = "missed shot on " + entity->getPlayerName() + " due to ?"; // @note by JannesBonk: amazing resolver miss log $$$
             if (snapshot.backtrackRecord > 0)
                 missed += " ( bt: " + std::to_string(snapshot.backtrackRecord) + ", ";
             if (resolver_info[entity->index()].side < 2)
@@ -236,10 +237,10 @@ void Resolver::runPostUpdate(Animations::Players player, Entity* entity) noexcep
     if (player.chokedPackets <= 0)
         return;
 
-
+    /* start calling ur shit */
     ResolveAir(player, entity);
     detect_jitter(player, entity);
-    anim_layers(player, entity);    /* start calling ur shit */
+    anim_layers(player, entity);    
 }
 
 float flAngleMod(float flAngle)
@@ -443,7 +444,7 @@ void Resolver::ResolveAir(Animations::Players player, Entity* entity) noexcept
     float max_rotation = entity->getMaxDesyncAngle();
     float angle1 = 0;
 
-    switch (misses % 1)
+    switch (misses % 1) // @note by JannesBonk & Drip: ???
     {
     case 0:
         entity->eyeAngles().y = info.foot_yaw;
@@ -638,7 +639,7 @@ void Resolver::anim_layers(Animations::Players player, Entity* entity) noexcept
     auto& info = resolver_info[entity->index()];
     const float eye_yaw = entity->getAnimstate()->eyeYaw;
     float max_rotation = entity->getMaxDesyncAngle();
-    bool stand = entity->velocity().length2D() <= 0.1f;
+    bool stand = entity->velocity().length2D() <= 0.1f; // @note by JannesBonk: ah yes, standing with micromovement $$$
 
     Resolver::setup_detect(player, entity);
 
