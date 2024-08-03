@@ -761,6 +761,7 @@ bool Resolver::GetLowDeltaState(Entity* entity) {
 
 void Resolver::apply(Animations::Players player, Entity* entity) noexcept
 {
+    // @note from JannesBonk: C6262: Function uses '18340' bytes of stack. Consider moving some data to heap"
     if (!entity->isAlive())
         return;
 
