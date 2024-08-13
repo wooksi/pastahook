@@ -261,8 +261,8 @@ void displaycurrentspotifysong()
     }
 }
 #include "hacks/NadePredEXP.h"
-#include "Hacks/bass.h"
 #include "SDK/MoveMsg.h"
+
 static HRESULT __stdcall present(IDirect3DDevice9* device, const RECT* src, const RECT* dest, HWND windowOverride, const RGNDATA* dirtyRegion) noexcept
 {
     [[maybe_unused]] static bool imguiInit{ ImGui_ImplDX9_Init(device) };

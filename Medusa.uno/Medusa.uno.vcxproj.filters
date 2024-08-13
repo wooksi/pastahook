@@ -85,7 +85,6 @@
       <Filter>betterESP</Filter>
     </ClCompile>
     <ClCompile Include="Hacks\NadePredEXP.cpp" />
-    <ClCompile Include="Hacks\dll.cpp" />
     <ClCompile Include="Math.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -255,13 +254,6 @@
     <ClInclude Include="SDK\ProtobufReader.h" />
     <ClInclude Include="Hacks\NadePredEXP.h" />
     <ClInclude Include="SDK\ITexture.h" />
-    <ClInclude Include="Hacks\bass.h" />
-    <ClInclude Include="Hacks\bass2.h" />
-    <ClInclude Include="Hacks\bass3.h" />
-    <ClInclude Include="Hacks\bass4.h" />
-    <ClInclude Include="Hacks\bass5.h" />
-    <ClInclude Include="Hacks\dll.h" />
-    <ClInclude Include="Hacks\bass6.h" />
     <ClInclude Include="Math.h" />
     <ClInclude Include="SDK\MoveMsg.h" />
   </ItemGroup>

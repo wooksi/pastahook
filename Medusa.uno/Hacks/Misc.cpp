@@ -52,13 +52,7 @@
 #include "../includes.hpp"
 #include "../postprocessing.h"
 #include "Visuals.h"
-#include "bass.h"
-#include "bass2.h"
-#include "bass3.h"
-#include "bass4.h"
-#include "bass5.h"
-#include "bass6.h"
-#include "dll.h"
+
 UserCmd* cmd1;
 int goofy;
 void Misc::getCmd(UserCmd* cmd) noexcept
@@ -983,72 +977,7 @@ void Misc::PixelSurfAlign(UserCmd* cmd)
 
 void Misc::SetupRadio()
 {
-    BASS::bass_lib_handle = BASS::bass_lib.LoadFromMemory(bass_dll_image, sizeof(bass_dll_image));
-
-    if (BASS_INIT_ONCE())
-        BASS::bass_init = TRUE;
-
-    static bool m_bBassNeedsReinit = false;
-
-    static std::pair<std::string, char> channels[] =
-    {
-        __(XorStr("http://radio.infowaste.xyz:8010/radio.mp3")),					  // Gabber
-        __(XorStr("http://kathy.torontocast.com:3140/stream")),                     // Rock
-        __(XorStr("http://radiosputnik.nl:8002/sputnik")),                          // Techno
-        __(XorStr("http://64.20.39.8:8071/stream")),                                // Rap
-        __(XorStr("http://radio4.vip-radios.fm:8020/stream128k-AAC-Chill_autodj")), // Chill
-        __(XorStr("http://mp3.stream.tb-group.fm/clt.mp3")),                        // Club
-        __(XorStr("http://mp3.stream.tb-group.fm/ht.mp3")),                         // House
-        __(XorStr("http://69.195.153.34/cvgm192")),                                 // 8-Bit
-        __(XorStr("http://8bit.fm:8000/live")),                                     // 8-Bit Alternative
-        __(XorStr("http://ec2.yesstreaming.net:1910/stream")),                      // Lo-Fi
-        __(XorStr("http://eurobeat.stream.laut.fm/eurobeat")),					  // Eurobeat
-        __(XorStr("https://nightcore-berlin.stream.laut.fm/nightcore-berlin")),     // Nightcore
-        __(XorStr("https://icast.connectmedia.hu/5202/live.mp3")),					  // Radio 1
-        __(XorStr("http://stream-158.zeno.fm/71ntub27u18uv?zs=R4yvq6kaRPyekzJdUwP1VA")) // Phonk radio
-    };
-
-    bool bShouldDisable = false;
-
-    while (!bShouldDisable)
-    {
-#ifdef NDEBUG
-        if (config->misc.bDoUnload)
-            bShouldDisable = true;
-#endif
-
-#ifdef _DEBUG
-        if (GetAsyncKeyState(VK_DELETE) || config->misc.bDoUnload)
-            bShouldDisable = true;
-#endif
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        const auto desired_channel = config->misc.iRadioStation;
-
-        if (BASS::bass_init && desired_channel)
-        {
-            static auto current_channel = 0;
-
-            if (current_channel != desired_channel || m_bBassNeedsReinit)
-            {
-                m_bBassNeedsReinit = false;
-                BASS_Start();
-                _rt(channel, channels[desired_channel]);
-                BASS_OPEN_STREAM(channel);
-                current_channel = desired_channel;
-            }
-
-            BASS_SET_VOLUME(BASS::stream_handle,
-                   !config->misc.bEnableRadio
-                ? 0.f
-                : config->misc.flRadioVolume / 200.f);
-            BASS_PLAY_STREAM();
-        }
-        else if (BASS::bass_init)
-        {
-            m_bBassNeedsReinit = true;
-            BASS_StreamFree(BASS::stream_handle);
-        }
-    }
+    //couldnt find this in his source
 }
 
 static std::vector<std::pair<Vector, Vector>> detectionpositions;

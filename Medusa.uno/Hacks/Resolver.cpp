@@ -106,13 +106,14 @@ void Resolver::getEvent(GameEvent* event) noexcept
         const auto& info = resolver_info[index];
         std::string sideHit = info.side == 1 ? "1" : info.side == -1 ? "-1" : "0"; // 1 = right, -1 = left, 0 = middle
         std::string jittering = info.is_jittering ? "true" : "false"; // check if they were jittering
-        std::string safety = info.is_jittering ? "not really" : "kinda"; /* @note by JannesBonk: ah yes, safety check $$$; @note by Drip: it's either YES or NO */
+        std::string safety = info.is_jittering ? "kinda" : GetLowDeltaState(entity) ? "not really" : "yes"; /* @note by JannesBonk: WHAT IS MY GUY DOING */
         std::string playerName = entity->getPlayerName(); // Get player name
         std::string footyaw = std::to_string(info.foot_yaw);
         std::string v39 = GetLowDeltaState(entity) ? "true" : "false"; // reversed
-        
+        std::string v40 = std::to_string(snapshots.front().backtrackRecord); // reversed | might be incorrect
+
         /* @note by JannesBonk: ah yes, totally using AnimLayers 24/7 */
-        Logger::addLog("hit player | " + playerName + " | AnimLayers | Side: " + sideHit + " | body_yaw: " + footyaw + "°" + " | History: " + " | Delta: " + v39 + " | Jitter: " + jittering + " | Safe: " + safety);
+        Logger::addLog("hit player | " + playerName + " | AnimLayers | Side: " + sideHit + " | body_yaw: " + footyaw + "°" + " | History: -1t" + " | Delta: " + v39 + " | Jitter: " + jittering + " | Safe : " + safety);
 
         snapshots.pop_front(); // Hit somebody so don't calculate       
         break;
@@ -194,13 +195,18 @@ void Resolver::processMissedShots() noexcept
     {
         if (AimbotFunction::hitboxIntersection(matrix, hitbox, set, snapshot.eyePosition, end))
         {
+            // @note from JannesBonk: he reverted from his old "missed shot due to ?" after getting clowned
             resolverMissed = true;
-            std::string missed = "missed shot on " + entity->getPlayerName() + " due to ?"; // @note by JannesBonk: amazing resolver miss log $$$
-            if (snapshot.backtrackRecord > 0)
-                missed += " ( bt: " + std::to_string(snapshot.backtrackRecord) + ", ";
-            if (resolver_info[entity->index()].side < 2)
-                missed += " side: " + std::to_string(resolver_info[entity->index()].side) + " )";
-            Logger::addLog(missed);
+            std::string missed = "missed shot on " + entity->getPlayerName() + " due to resolver";
+            std::string missedBT = "missed shot on " + entity->getPlayerName() + " due to invalid backtrack tick [" + std::to_string(snapshot.backtrackRecord) + "]";
+            std::string missedPred = "missed shot on " + entity->getPlayerName() + " due to prediction error";
+            std::string missedJitter = "missed shot on " + entity->getPlayerName() + " due to jitter";
+            if (snapshot.backtrackRecord == 1 && config->backtrack.enabled)
+                Logger::addLog(missedJitter);
+            else if (snapshot.backtrackRecord > 1 && config->backtrack.enabled)
+                Logger::addLog(missedBT);
+            else
+                Logger::addLog(missed);
             Animations::setPlayer(snapshot.playerIndex)->misses++;
             break;
         }
@@ -816,13 +822,16 @@ void Resolver::apply(Animations::Players player, Entity* entity) noexcept
             break;
         }
     }
-    switch (misses % 2) {
-    case 0: //default
-        entity->getAnimstate()->footYaw = build_server_abs_yaw(entity, entity->eyeAngles().y + info.foot_yaw); // animlayers 
-        break;
-    case 1: // backup
-        entity->getAnimstate()->footYaw = build_server_abs_yaw(entity, entity->eyeAngles().y + max_rotation * info.CurSide); // animlayers
-        break;
+    else
+    {
+        switch (misses % 2) {
+        case 0: //default
+            entity->getAnimstate()->footYaw = build_server_abs_yaw(entity, entity->eyeAngles().y + info.foot_yaw); // animlayers 
+            break;
+        case 1: // backup
+            entity->getAnimstate()->footYaw = build_server_abs_yaw(entity, entity->eyeAngles().y + max_rotation * info.CurSide); // animlayers
+            break;
+        }
     }
 }
 
