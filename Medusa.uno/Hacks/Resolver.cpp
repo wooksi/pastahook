@@ -109,9 +109,10 @@ void Resolver::getEvent(GameEvent* event) noexcept
         std::string safety = info.is_jittering ? "not really" : "kinda"; /* @note by JannesBonk: ah yes, safety check $$$; @note by Drip: it's either YES or NO */
         std::string playerName = entity->getPlayerName(); // Get player name
         std::string footyaw = std::to_string(info.foot_yaw);
-
+        std::string v39 = GetLowDeltaState(entity) ? "true" : "false"; // reversed
+        
         /* @note by JannesBonk: ah yes, totally using AnimLayers 24/7 */
-        Logger::addLog("Fired shot at player | " + playerName + " | AnimLayers | Side: " + sideHit + " | foot_yaw: " + footyaw + "° | Safe: " + safety + " | Jitter: " + jittering + "");
+        Logger::addLog("hit player | " + playerName + " | AnimLayers | Side: " + sideHit + " | body_yaw: " + footyaw + "°" + " | History: " + " | Delta: " + v39 + " | Jitter: " + jittering + " | Safe: " + safety);
 
         snapshots.pop_front(); // Hit somebody so don't calculate       
         break;
