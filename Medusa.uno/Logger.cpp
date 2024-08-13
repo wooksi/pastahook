@@ -100,7 +100,9 @@ void Logger::getEvent(GameEvent* event) noexcept
                 nothing = c_xor("0 hp remaining)");
             else
                 nothing = std::to_string((player->health() - event->getInt(skCrypt("dmg_health")))) + c_xor(" hp remaining)");
-            log.text = std::string(skCrypt("hit ")) + player->getPlayerName() + c_xor(" in ") + hitgroup + c_xor(" for ") + damage + " \n";
+            
+            // @note from JannesBonk: smexy cant obfuscate strings properly so i can easily just paste from 1 quick reverse
+            log.text = std::string(skCrypt("hit ")) + player->getPlayerName() + c_xor(" [hitbox: [") + hitgroup + c_xor("] for ") + damage + "]";
         }
         else if (hurt == localPlayer->index() && attack != localPlayer->index())
         {
