@@ -3084,13 +3084,13 @@ void Misc::showKeybinds() noexcept
         {
             if (config->tickbase.doubletap.CSB())
             {
-                draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Double tap"));
+                draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("DT 666"));
                 draw_list->AddText(ImVec2(p.x - textA.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[on]"));
                 offset = offset + 1;
             }
             else
             {
-                draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("Double tap"));
+                draw_list->AddText(ImVec2(p.x + 4.5f, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("DT 666"));
                 if (config->tickbase.doubletap.isDown())
                     draw_list->AddText(ImVec2(p.x - textH.x - 4.5f + 150, p.y + 13.5f * offset), ImColor(1.f, 1.f, 1.f, 1.f), c_xor("[hold]"));
                 else if (config->tickbase.doubletap.isToggled())
