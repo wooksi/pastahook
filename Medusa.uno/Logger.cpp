@@ -100,7 +100,7 @@ void Logger::getEvent(GameEvent* event) noexcept
                 nothing = c_xor("0 hp remaining)");
             else
                 nothing = std::to_string((player->health() - event->getInt(skCrypt("dmg_health")))) + c_xor(" hp remaining)");
-            log.text = std::string(skCrypt("hit ")) + player->getPlayerName() + c_xor(" in ") + hitgroup + c_xor(" for ") + damage + " \n";
+            log.text = std::string(skCrypt("hit ")) + player->getPlayerName() + c_xor("[hitbox: [") + hitgroup + c_xor("] for ") + damage + "]\n";
         }
         else if (hurt == localPlayer->index() && attack != localPlayer->index())
         {
