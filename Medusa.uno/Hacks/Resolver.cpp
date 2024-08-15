@@ -114,7 +114,7 @@ void Resolver::getEvent(GameEvent* event) noexcept
 
         /* @note by JannesBonk: ah yes, totally using AnimLayers 24/7 */
         if (std::abs(info.foot_yaw) <= 50)
-            Logger::addLog("hit player | " + playerName + " | AnimLayers | Side: " + sideHit + " | body_yaw: " + footyaw + "°" + " | History: " + v40 + " | Delta: " + v39 + " | Jitter: " + jittering + " | Safe : " + safety);
+            Logger::addLog("hit player | " + playerName + " | AnimLayers | Side: " + sideHit + " | body_yaw: " + footyaw + "°" + " | History: " + v40 + "t | Delta: " + v39 + " | Jitter: " + jittering + " | Safe : " + safety);
         else
             Logger::addLog("hit player | " + playerName + " | Correction | Angle: " + footyaw + "°" + " | History: " + v40 + "t | Safe: " + safety);
         
