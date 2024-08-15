@@ -113,8 +113,11 @@ void Resolver::getEvent(GameEvent* event) noexcept
         std::string v40 = std::to_string(snapshots.front().backtrackRecord); // reversed | might be incorrect
 
         /* @note by JannesBonk: ah yes, totally using AnimLayers 24/7 */
-        Logger::addLog("hit player | " + playerName + " | AnimLayers | Side: " + sideHit + " | body_yaw: " + footyaw + "°" + " | History: -1t" + " | Delta: " + v39 + " | Jitter: " + jittering + " | Safe : " + safety);
-
+        if (std::abs(info.foot_yaw) <= 50)
+            Logger::addLog("hit player | " + playerName + " | AnimLayers | Side: " + sideHit + " | body_yaw: " + footyaw + "°" + " | History: " + v40 + " | Delta: " + v39 + " | Jitter: " + jittering + " | Safe : " + safety);
+        else
+            Logger::addLog("hit player | " + playerName + " | Correction | Angle: " + footyaw + "°" + " | History: " + v40 + "t | Safe: " + safety);
+        
         snapshots.pop_front(); // Hit somebody so don't calculate       
         break;
     }
